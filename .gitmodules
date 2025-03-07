@@ -1,0 +1,6 @@
+[submodule "Front_End_SPF"]
+	path = Front_End_SPF
+	url = https://github.com/ChaseBowen620/Front_End_SPF.git
+[submodule "Back_End_SPF"]
+	path = Back_End_SPF
+	url = https://github.com/ChaseBowen620/Back_End_SPF.git
