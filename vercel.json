@@ -1,3 +1,10 @@
 {
-    "buildCommand": "npm run build"
-}
+    "version": 2,
+    "builds": [
+      {
+        "src": "front_end_spf/package.json",
+        "use": "@vercel/static-build"
+      }
+    ],
+    "outputDirectory": "front_end_spf/dist"
+  }
