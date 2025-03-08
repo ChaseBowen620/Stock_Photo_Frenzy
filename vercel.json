@@ -1,10 +1,13 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "front_end_spf/package.json",
-        "use": "@vercel/static-build"
-      }
-    ],
-    "outputDirectory": "front_end_spf/dist"
-  }
+  "version": 2,
+  "builds": [
+    {
+      "src": "Front_End_SPF/package.json",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "Back_End_SPF/package.json",
+      "use": "@vercel/node"
+    }
+  ]
+}
