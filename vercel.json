@@ -1,13 +1,9 @@
 {
   "version": 2,
-  "builds": [
+  "routes": [
     {
-      "src": "Front_End_SPF/package.json",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "Back_End_SPF/package.json",
-      "use": "@vercel/node"
+      "src": "/webgl/(.*)",
+      "dest": "/public/webgl/$1"
     }
   ]
 }
