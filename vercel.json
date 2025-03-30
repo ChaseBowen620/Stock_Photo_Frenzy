@@ -1,9 +1,14 @@
 {
   "version": 2,
+  "public": "public",
   "routes": [
     {
       "src": "/webgl/(.*)",
-      "dest": "/public/webgl/$1"
+      "dest": "/webgl/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
