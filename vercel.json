@@ -1,7 +1,4 @@
 {
   "version": 2,
-  "public": "public",
-  "static": {
-    "directory": "public"
-  }
+  "public": "public"
 }
