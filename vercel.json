@@ -1,8 +1,28 @@
 {
   "version": 2,
-  "public": "public/webgl",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+  "builds": [
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/Build/(.*)",
+      "dest": "/public/Build/$1"
+    },
+    {
+      "src": "/TemplateData/(.*)",
+      "dest": "/public/TemplateData/$1"
+    },
+    {
+      "src": "/StreamingAssets/(.*)",
+      "dest": "/public/StreamingAssets/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
   ],
   "headers": [
     {
@@ -19,4 +39,4 @@
       ]
     }
   ]
-}
+} 
