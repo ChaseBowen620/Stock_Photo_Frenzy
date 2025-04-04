@@ -4,9 +4,14 @@
     {
       "src": "public/**/*",
       "use": "@vercel/static"
+    },
+    {
+      "src": "api/**/*.py",
+      "use": "@vercel/python"
     }
   ],
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/Build/:path*", "destination": "/public/Build/:path*" },
     { "source": "/TemplateData/:path*", "destination": "/public/TemplateData/:path*" },
     { "source": "/StreamingAssets/:path*", "destination": "/public/StreamingAssets/:path*" },
