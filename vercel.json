@@ -32,12 +32,8 @@
       ]
     },
     {
-      "source": "/Build/Build\\.data\\.br",
+      "source": "/Build/(.*)\\.br",
       "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/octet-stream"
-        },
         {
           "key": "Content-Encoding",
           "value": "br"
@@ -45,7 +41,7 @@
       ]
     },
     {
-      "source": "/Build/Build\\.framework\\.js\\.br",
+      "source": "/Build/(.*)\\.js\\.br",
       "headers": [
         {
           "key": "Content-Type",
@@ -58,7 +54,7 @@
       ]
     },
     {
-      "source": "/Build/Build\\.wasm\\.br",
+      "source": "/Build/(.*)\\.wasm\\.br",
       "headers": [
         {
           "key": "Content-Type",
@@ -71,7 +67,20 @@
       ]
     },
     {
-      "source": "/Build/Build\\.loader\\.js",
+      "source": "/Build/(.*)\\.data\\.br",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/octet-stream"
+        },
+        {
+          "key": "Content-Encoding",
+          "value": "br"
+        }
+      ]
+    },
+    {
+      "source": "/Build/(.*)\\.js",
       "headers": [
         {
           "key": "Content-Type",
