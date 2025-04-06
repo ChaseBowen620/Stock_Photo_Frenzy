@@ -11,11 +11,26 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/Build/:path*", "destination": "/public/Build/:path*" },
-    { "source": "/TemplateData/:path*", "destination": "/public/TemplateData/:path*" },
-    { "source": "/StreamingAssets/:path*", "destination": "/public/StreamingAssets/:path*" },
-    { "source": "/(.*)", "destination": "/public/$1" }
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/Build/:path*",
+      "destination": "/public/Build/:path*"
+    },
+    {
+      "source": "/TemplateData/:path*",
+      "destination": "/public/TemplateData/:path*"
+    },
+    {
+      "source": "/StreamingAssets/:path*",
+      "destination": "/public/StreamingAssets/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/public/$1"
+    }
   ],
   "headers": [
     {
@@ -84,4 +99,4 @@
       ]
     }
   ]
-} 
+}
