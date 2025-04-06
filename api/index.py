@@ -3,8 +3,10 @@ from os import environ
 import requests
 import json
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 load_dotenv()
 
 @app.route('/api/get-random-images', methods=['GET'])
@@ -55,4 +57,8 @@ def get_random_images():
         return jsonify(formatted_images)
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500 
+        return jsonify({"error": str(e)}), 500
+
+# For local development
+if __name__ == '__main__':
+    app.run() 
