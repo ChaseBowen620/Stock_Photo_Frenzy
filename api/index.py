@@ -5,10 +5,15 @@ import json
 from dotenv import load_dotenv
 from flask_cors import CORS
 import base64
+import logging
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 load_dotenv()
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @app.route('/api/get-random-images', methods=['GET'])
 def get_random_images():
@@ -17,11 +22,14 @@ def get_random_images():
         num_images = int(request.args.get('numImages', '10'))
         title_length = int(request.args.get('titleLength', '30'))
 
+        logger.info(f"Received request - Query: {query}, Num Images: {num_images}, Title Length: {title_length}")
+
         # Shutterstock API credentials
         client_id = environ.get('SHUTTERSTOCK_CLIENT_ID')
         client_secret = environ.get('SHUTTERSTOCK_CLIENT_SECRET')
         
         if not client_id or not client_secret:
+            logger.error("API credentials not configured")
             return jsonify({"error": "API credentials not configured"}), 500
 
         # First, get an access token
@@ -40,12 +48,18 @@ def get_random_images():
             "client_secret": client_secret
         }
 
+        logger.info("Requesting access token...")
         token_response = requests.post(token_url, headers=token_headers, data=token_data)
+        logger.info(f"Token response status: {token_response.status_code}")
+        logger.info(f"Token response body: {token_response.text}")
+
         if token_response.status_code != 200:
-            return jsonify({"error": "Failed to get access token"}), token_response.status_code
+            logger.error(f"Failed to get access token: {token_response.text}")
+            return jsonify({"error": f"Failed to get access token: {token_response.text}"}), token_response.status_code
 
         access_token = token_response.json().get('access_token')
         if not access_token:
+            logger.error("No access token received")
             return jsonify({"error": "No access token received"}), 500
 
         # Now use the access token to search for images
@@ -59,9 +73,14 @@ def get_random_images():
             "view": "full"
         }
 
+        logger.info("Searching for images...")
         response = requests.get(search_url, headers=search_headers, params=search_params)
+        logger.info(f"Search response status: {response.status_code}")
+        logger.info(f"Search response body: {response.text}")
+
         if response.status_code != 200:
-            return jsonify({"error": "Failed to fetch images"}), response.status_code
+            logger.error(f"Failed to fetch images: {response.text}")
+            return jsonify({"error": f"Failed to fetch images: {response.text}"}), response.status_code
 
         data = response.json()
         formatted_images = []
@@ -81,9 +100,11 @@ def get_random_images():
                 "truncated_title": truncated_description
             })
 
+        logger.info(f"Successfully formatted {len(formatted_images)} images")
         return jsonify(formatted_images)
 
     except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 # For local development
