@@ -4,6 +4,7 @@ import requests
 import json
 from dotenv import load_dotenv
 from flask_cors import CORS
+import base64
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -17,22 +18,48 @@ def get_random_images():
         title_length = int(request.args.get('titleLength', '30'))
 
         # Shutterstock API credentials
-        api_key = environ.get('SHUTTERSTOCK_API_KEY')
-        if not api_key:
-            return jsonify({"error": "API key not configured"}), 500
+        client_id = environ.get('SHUTTERSTOCK_CLIENT_ID')
+        client_secret = environ.get('SHUTTERSTOCK_CLIENT_SECRET')
+        
+        if not client_id or not client_secret:
+            return jsonify({"error": "API credentials not configured"}), 500
 
-        # Shutterstock API endpoint
-        url = f"https://api.shutterstock.com/v2/images/search"
-        headers = {
-            "Authorization": f"Bearer {api_key}"
+        # First, get an access token
+        auth_string = f"{client_id}:{client_secret}"
+        auth_bytes = auth_string.encode('ascii')
+        auth_b64 = base64.b64encode(auth_bytes).decode('ascii')
+        
+        token_url = "https://api.shutterstock.com/v2/access_token"
+        token_headers = {
+            "Authorization": f"Basic {auth_b64}",
+            "Content-Type": "application/x-www-form-urlencoded"
         }
-        params = {
+        token_data = {
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": client_secret
+        }
+
+        token_response = requests.post(token_url, headers=token_headers, data=token_data)
+        if token_response.status_code != 200:
+            return jsonify({"error": "Failed to get access token"}), token_response.status_code
+
+        access_token = token_response.json().get('access_token')
+        if not access_token:
+            return jsonify({"error": "No access token received"}), 500
+
+        # Now use the access token to search for images
+        search_url = "https://api.shutterstock.com/v2/images/search"
+        search_headers = {
+            "Authorization": f"Bearer {access_token}"
+        }
+        search_params = {
             "query": query,
             "per_page": num_images,
             "view": "full"
         }
 
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(search_url, headers=search_headers, params=search_params)
         if response.status_code != 200:
             return jsonify({"error": "Failed to fetch images"}), response.status_code
 
