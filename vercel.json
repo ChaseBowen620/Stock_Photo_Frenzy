@@ -10,13 +10,8 @@
       "use": "@vercel/python"
     }
   ],
-  "routes": [
-    {
-      "src": "/api/get-random-images",
-      "dest": "api/index.py"
-    }
-  ],
   "rewrites": [
+    { "source": "/api/get-random-images", "destination": "/api/index.py" },
     { "source": "/Build/(.*)", "destination": "/public/Build/$1" },
     { "source": "/TemplateData/(.*)", "destination": "/public/TemplateData/$1" },
     { "source": "/StreamingAssets/(.*)", "destination": "/public/StreamingAssets/$1" },
