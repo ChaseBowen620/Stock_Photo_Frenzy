@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd Stock_Photo_Frenzy/Front_End_SPF && npm install && npm run build",
-  "outputDirectory": "Stock_Photo_Frenzy/Front_End_SPF/dist",
+  "buildCommand": "cd Front_End_SPF && npm install && npm run build",
+  "outputDirectory": "Front_End_SPF/dist",
   "framework": "vite",
   "rewrites": [
     {
