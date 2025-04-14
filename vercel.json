@@ -5,8 +5,8 @@
       "src": "Front_End_SPF/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "buildCommand": "npm run vercel-build",
-        "outputDirectory": "dist"
+        "buildCommand": "cd Front_End_SPF && npm install && npm run build",
+        "outputDirectory": "Front_End_SPF/dist"
       }
     },
     {
@@ -21,7 +21,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/dist/$1"
+      "destination": "/Front_End_SPF/dist/$1"
     }
   ],
   "headers": [
@@ -39,76 +39,6 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cross-Origin-Embedder-Policy",
-          "value": "require-corp"
-        },
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
-        }
-      ]
-    },
-    {
-      "source": "/Build/(.*)\\.br",
-      "headers": [
-        {
-          "key": "Content-Encoding",
-          "value": "br"
-        }
-      ]
-    },
-    {
-      "source": "/Build/(.*)\\.js\\.br",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
-        },
-        {
-          "key": "Content-Encoding",
-          "value": "br"
-        }
-      ]
-    },
-    {
-      "source": "/Build/(.*)\\.wasm\\.br",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/wasm"
-        },
-        {
-          "key": "Content-Encoding",
-          "value": "br"
-        }
-      ]
-    },
-    {
-      "source": "/Build/(.*)\\.data\\.br",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/octet-stream"
-        },
-        {
-          "key": "Content-Encoding",
-          "value": "br"
-        }
-      ]
-    },
-    {
-      "source": "/Build/(.*)\\.js",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript"
         }
       ]
     }
