@@ -11,9 +11,6 @@ import {
 } from '@mui/material';
 import axios from 'axios';
 
-// Add NodeJS type definition
-type Timeout = ReturnType<typeof setTimeout>;
-
 interface GameState {
   roundNum: number;
   pointNum: number;
