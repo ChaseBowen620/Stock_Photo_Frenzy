@@ -1,0 +1,8 @@
+{
+  "name": "stock-photo-frenzy-root",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd Front_End_SPF && npm install && npm run build"
+  }
+} 

@@ -5,7 +5,8 @@
       "src": "Front_End_SPF/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "buildCommand": "npm run vercel-build",
+        "outputDirectory": "Front_End_SPF/dist"
       }
     },
     {
@@ -20,7 +21,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/Front_End_SPF/$1"
+      "destination": "/Front_End_SPF/dist/$1"
     }
   ],
   "headers": [
