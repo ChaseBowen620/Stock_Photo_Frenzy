@@ -6,7 +6,7 @@
       "use": "@vercel/static-build",
       "config": {
         "buildCommand": "npm run vercel-build",
-        "outputDirectory": "Front_End_SPF/dist"
+        "outputDirectory": "dist"
       }
     },
     {
@@ -21,7 +21,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/Front_End_SPF/dist/$1"
+      "destination": "/dist/$1"
     }
   ],
   "headers": [
