@@ -13,22 +13,15 @@
       "use": "@vercel/python"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "Back_End_SPF/api/$1"
+      "source": "/api/get_random_images",
+      "destination": "/Back_End_SPF/api/get_random_images.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "Front_End_SPF/$1"
+      "source": "/(.*)",
+      "destination": "/Front_End_SPF/$1"
     }
-  ],
-  "rewrites": [
-    { "source": "/api/get-random-images", "destination": "/api/index.py" },
-    { "source": "/Build/(.*)", "destination": "/public/Build/$1" },
-    { "source": "/TemplateData/(.*)", "destination": "/public/TemplateData/$1" },
-    { "source": "/StreamingAssets/(.*)", "destination": "/public/StreamingAssets/$1" },
-    { "source": "/(.*)", "destination": "/public/$1" }
   ],
   "headers": [
     {
