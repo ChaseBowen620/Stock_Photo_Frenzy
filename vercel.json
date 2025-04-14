@@ -2,12 +2,25 @@
   "version": 2,
   "builds": [
     {
-      "src": "public/**/*",
-      "use": "@vercel/static"
+      "src": "Front_End_SPF/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
     },
     {
-      "src": "api/index.py",
+      "src": "Back_End_SPF/api/*.py",
       "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "Back_End_SPF/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "Front_End_SPF/$1"
     }
   ],
   "rewrites": [
