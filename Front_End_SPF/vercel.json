@@ -1,6 +1,6 @@
 {
-  "buildCommand": "cd Front_End_SPF && npm install && npm run build",
-  "outputDirectory": "Front_End_SPF/dist",
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
     {
