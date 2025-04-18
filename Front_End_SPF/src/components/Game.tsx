@@ -88,17 +88,27 @@ const Game: React.FC = () => {
           titleLength: settings.difficulty === 'easy' ? 50 : settings.difficulty === 'medium' ? 100 : 200
         }
       });
+      
+      if (!response.data || response.data.length === 0) {
+        throw new Error('No images received from API');
+      }
+      
       setImages(response.data);
       setCurrentImage(response.data[0]);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching images:', error);
       setLoading(false);
+      // Set an error state that we can show to the user
+      setGameState(prev => ({
+        ...prev,
+        isRound: false
+      }));
     }
   };
 
   const checkGuess = (guess: string) => {
-    if (!currentImage || !gameState.isRound) return;
+    if (!currentImage?.title || !gameState.isRound) return;
 
     const words = currentImage.title.toLowerCase().split(' ');
     const guessLower = guess.toLowerCase().trim();
@@ -184,7 +194,7 @@ const Game: React.FC = () => {
           </Grid>
           
           <Grid item xs={12}>
-            {currentImage && (
+            {currentImage?.url ? (
               <Box
                 component="img"
                 src={currentImage.url}
@@ -195,6 +205,10 @@ const Game: React.FC = () => {
                   objectFit: 'contain'
                 }}
               />
+            ) : (
+              <Typography variant="h6" color="error" align="center">
+                Error loading image. Please try refreshing the page.
+              </Typography>
             )}
           </Grid>
 
@@ -205,7 +219,7 @@ const Game: React.FC = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleInputKeyPress}
-                disabled={!gameState.isRound}
+                disabled={!gameState.isRound || !currentImage?.title}
                 placeholder="Type your guess here..."
                 inputRef={inputRef}
                 autoFocus
@@ -213,14 +227,14 @@ const Game: React.FC = () => {
               <Button
                 variant="contained"
                 onClick={() => checkGuess(inputValue)}
-                disabled={!gameState.isRound}
+                disabled={!gameState.isRound || !currentImage?.title}
               >
                 Guess
               </Button>
               <Button
                 variant="outlined"
                 onClick={reveal}
-                disabled={!gameState.isRound}
+                disabled={!gameState.isRound || !currentImage?.title}
               >
                 Forfeit
               </Button>
@@ -232,7 +246,7 @@ const Game: React.FC = () => {
               {gameState.isRound ? (
                 `Guessed words: ${Array.from(guessedWords).join(', ')}`
               ) : (
-                `Full title: ${currentImage?.title}`
+                `Full title: ${currentImage?.title || 'No title available'}`
               )}
             </Typography>
           </Grid>
