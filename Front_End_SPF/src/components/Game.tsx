@@ -81,33 +81,46 @@ const Game: React.FC = () => {
   const fetchImages = async () => {
     try {
       const settings = JSON.parse(localStorage.getItem('gameSettings') || '{}');
-      console.log('Fetching images with settings:', settings); // Debug log
+      console.log('Fetching images with settings:', settings);
       
-      const apiUrl = import.meta.env.PROD 
-        ? 'https://stock-photo-frenzy-backend.vercel.app/api/get_random_images'
-        : '/api/get_random_images';
+      // For development testing, use mock data
+      if (import.meta.env.DEV) {
+        const mockImages = [
+          {
+            url: 'https://picsum.photos/800/600',
+            title: 'happy business people working together',
+            truncatedTitle: 'happy business people'
+          },
+          {
+            url: 'https://picsum.photos/800/601',
+            title: 'beautiful sunset over mountains',
+            truncatedTitle: 'beautiful sunset'
+          },
+          // Add more mock images as needed
+        ];
+        
+        setImages(mockImages);
+        setCurrentImage(mockImages[0]);
+        setLoading(false);
+        return;
+      }
 
-      const response = await axios.get(apiUrl, {
+      const response = await axios.get('/api/get_random_images', {
         params: {
           query: settings.searchType === 'random' ? 'random' : settings.searchTerm,
           numImages: settings.rounds || 10,
           titleLength: settings.difficulty === 'easy' ? 50 : settings.difficulty === 'medium' ? 100 : 200
+        },
+        headers: {
+          'Content-Type': 'application/json',
+          // Add any necessary authentication headers here
         }
       });
       
-      console.log('API Response:', response.data); // Debug log
+      console.log('API Response:', response.data);
       
       if (!response.data || response.data.length === 0) {
         throw new Error('No images received from API');
-      }
-      
-      // Validate the image data structure
-      const validImages = response.data.every((img: ImageData) => 
-        img && typeof img.url === 'string' && typeof img.title === 'string'
-      );
-      
-      if (!validImages) {
-        throw new Error('Invalid image data structure received from API');
       }
       
       setImages(response.data);
@@ -174,16 +187,18 @@ const Game: React.FC = () => {
   };
 
   const startNewRound = () => {
-    if (gameState.roundNum >= images.length) {
+    const nextRoundNum = gameState.roundNum + 1;
+    
+    if (nextRoundNum > images.length) {
       // Game over
       return;
     }
 
-    setCurrentImage(images[gameState.roundNum]);
+    setCurrentImage(images[nextRoundNum - 1]);
     setGuessedWords(new Set());
     setGameState(prev => ({
       ...prev,
-      roundNum: prev.roundNum + 1,
+      roundNum: nextRoundNum,
       curPointNum: 0,
       multiplier: 0,
       isRound: true,
