@@ -81,7 +81,13 @@ const Game: React.FC = () => {
   const fetchImages = async () => {
     try {
       const settings = JSON.parse(localStorage.getItem('gameSettings') || '{}');
-      const response = await axios.get('/api/get_random_images', {
+      console.log('Fetching images with settings:', settings); // Debug log
+      
+      const apiUrl = import.meta.env.PROD 
+        ? 'https://stock-photo-frenzy-backend.vercel.app/api/get_random_images'
+        : '/api/get_random_images';
+
+      const response = await axios.get(apiUrl, {
         params: {
           query: settings.searchType === 'random' ? 'random' : settings.searchTerm,
           numImages: settings.rounds || 10,
@@ -89,8 +95,19 @@ const Game: React.FC = () => {
         }
       });
       
+      console.log('API Response:', response.data); // Debug log
+      
       if (!response.data || response.data.length === 0) {
         throw new Error('No images received from API');
+      }
+      
+      // Validate the image data structure
+      const validImages = response.data.every((img: ImageData) => 
+        img && typeof img.url === 'string' && typeof img.title === 'string'
+      );
+      
+      if (!validImages) {
+        throw new Error('Invalid image data structure received from API');
       }
       
       setImages(response.data);
@@ -98,8 +115,14 @@ const Game: React.FC = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching images:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', {
+          status: error.response?.status,
+          data: error.response?.data,
+          headers: error.response?.headers
+        });
+      }
       setLoading(false);
-      // Set an error state that we can show to the user
       setGameState(prev => ({
         ...prev,
         isRound: false
