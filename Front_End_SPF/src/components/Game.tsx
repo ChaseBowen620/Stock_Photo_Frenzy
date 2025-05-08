@@ -28,9 +28,16 @@ interface ImageData {
   truncatedTitle: string;
 }
 
-const API_BASE_URL = import.meta.env.PROD 
-  ? import.meta.env.VITE_PROD_API_URL 
-  : import.meta.env.VITE_API_URL;
+// Utility to get the correct API base URL
+const getApiBaseUrl = () => {
+  if (window.location.hostname === 'localhost') {
+    return import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  }
+  // In production, use relative path (same domain)
+  return '';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 const Game: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
