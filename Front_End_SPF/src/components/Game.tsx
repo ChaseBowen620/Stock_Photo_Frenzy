@@ -19,6 +19,7 @@ interface GameState {
   isRound: boolean;
   isCompleteTitle: boolean;
   timeLeft: number;
+  isGameOver: boolean;
 }
 
 interface ImageData {
@@ -26,6 +27,10 @@ interface ImageData {
   title: string;
   truncatedTitle: string;
 }
+
+const API_BASE_URL = import.meta.env.PROD 
+  ? import.meta.env.VITE_PROD_API_URL 
+  : import.meta.env.VITE_API_URL;
 
 const Game: React.FC = () => {
   const [gameState, setGameState] = useState<GameState>({
@@ -35,7 +40,8 @@ const Game: React.FC = () => {
     multiplier: 0,
     isRound: true,
     isCompleteTitle: false,
-    timeLeft: 60
+    timeLeft: 60,
+    isGameOver: false
   });
 
   const [images, setImages] = useState<ImageData[]>([]);
@@ -57,7 +63,7 @@ const Game: React.FC = () => {
 
   useEffect(() => {
     if (gameState.isRound && gameState.timeLeft > 0) {
-      timerRef.current = setInterval(() => {
+      timerRef.current = window.setInterval(() => {
         setGameState(prev => ({
           ...prev,
           timeLeft: prev.timeLeft - 1
@@ -67,7 +73,7 @@ const Game: React.FC = () => {
 
     return () => {
       if (timerRef.current) {
-        clearInterval(timerRef.current);
+        window.clearInterval(timerRef.current);
       }
     };
   }, [gameState.isRound]);
@@ -81,43 +87,13 @@ const Game: React.FC = () => {
   const fetchImages = async () => {
     try {
       const settings = JSON.parse(localStorage.getItem('gameSettings') || '{}');
-      console.log('Fetching images with settings:', settings);
-      
-      // For development testing, use mock data
-      if (import.meta.env.DEV) {
-        const mockImages = [
-          {
-            url: 'https://picsum.photos/800/600',
-            title: 'happy business people working together',
-            truncatedTitle: 'happy business people'
-          },
-          {
-            url: 'https://picsum.photos/800/601',
-            title: 'beautiful sunset over mountains',
-            truncatedTitle: 'beautiful sunset'
-          },
-          // Add more mock images as needed
-        ];
-        
-        setImages(mockImages);
-        setCurrentImage(mockImages[0]);
-        setLoading(false);
-        return;
-      }
-
-      const response = await axios.get('/api/get_random_images', {
+      const response = await axios.get(`${API_BASE_URL}/api/get_random_images`, {
         params: {
           query: settings.searchType === 'random' ? 'random' : settings.searchTerm,
           numImages: settings.rounds || 10,
           titleLength: settings.difficulty === 'easy' ? 50 : settings.difficulty === 'medium' ? 100 : 200
-        },
-        headers: {
-          'Content-Type': 'application/json',
-          // Add any necessary authentication headers here
         }
       });
-      
-      console.log('API Response:', response.data);
       
       if (!response.data || response.data.length === 0) {
         throw new Error('No images received from API');
@@ -128,13 +104,6 @@ const Game: React.FC = () => {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching images:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error details:', {
-          status: error.response?.status,
-          data: error.response?.data,
-          headers: error.response?.headers
-        });
-      }
       setLoading(false);
       setGameState(prev => ({
         ...prev,
@@ -177,25 +146,36 @@ const Game: React.FC = () => {
   };
 
   const reveal = () => {
+    if (timerRef.current) {
+      window.clearInterval(timerRef.current);
+    }
     setGameState(prev => ({
       ...prev,
       isRound: false
     }));
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
   };
 
   const startNewRound = () => {
     const nextRoundNum = gameState.roundNum + 1;
     
     if (nextRoundNum > images.length) {
-      // Game over
+      setGameState(prev => ({
+        ...prev,
+        isGameOver: true
+      }));
       return;
     }
 
-    setCurrentImage(images[nextRoundNum - 1]);
+    const nextImage = images[nextRoundNum - 1];
+    if (!nextImage) {
+      console.error('No image found for round', nextRoundNum);
+      return;
+    }
+
+    setCurrentImage(nextImage);
     setGuessedWords(new Set());
+    const settings = JSON.parse(localStorage.getItem('gameSettings') || '{}');
+    
     setGameState(prev => ({
       ...prev,
       roundNum: nextRoundNum,
@@ -203,7 +183,7 @@ const Game: React.FC = () => {
       multiplier: 0,
       isRound: true,
       isCompleteTitle: false,
-      timeLeft: JSON.parse(localStorage.getItem('gameSettings') || '{}').timeLimit || 60
+      timeLeft: settings.timeLimit || 60
     }));
   };
 
@@ -221,13 +201,36 @@ const Game: React.FC = () => {
     );
   }
 
+  if (gameState.isGameOver) {
+    return (
+      <Container maxWidth="lg">
+        <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
+          <Typography variant="h4" gutterBottom align="center">
+            Game Over!
+          </Typography>
+          <Typography variant="h5" align="center">
+            Final Score: {gameState.pointNum}
+          </Typography>
+          <Box display="flex" justifyContent="center" mt={3}>
+            <Button
+              variant="contained"
+              onClick={() => window.location.href = '/'}
+            >
+              Play Again
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
+    );
+  }
+
   return (
     <Container maxWidth="lg">
       <Paper elevation={3} sx={{ p: 3, mt: 3 }}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
             <Typography variant="h4" gutterBottom>
-              Round: {gameState.roundNum} | Points: {gameState.pointNum} | Time: {gameState.timeLeft}s
+              Round: {gameState.roundNum} of {images.length} | Points: {gameState.pointNum} | Time: {gameState.timeLeft}s
             </Typography>
           </Grid>
           
@@ -289,7 +292,7 @@ const Game: React.FC = () => {
             </Typography>
           </Grid>
 
-          {!gameState.isRound && (
+          {!gameState.isRound && !gameState.isGameOver && (
             <Grid item xs={12}>
               <Box display="flex" justifyContent="space-between">
                 <Typography variant="h6">
@@ -300,7 +303,7 @@ const Game: React.FC = () => {
                   onClick={startNewRound}
                   disabled={gameState.roundNum >= images.length}
                 >
-                  Next Round
+                  {gameState.roundNum >= images.length ? 'Game Over' : 'Next Round'}
                 </Button>
               </Box>
             </Grid>

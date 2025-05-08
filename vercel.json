@@ -10,18 +10,18 @@
       }
     },
     {
-      "src": "Back_End_SPF/api/*.py",
-      "use": "@vercel/python"
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/get_random_images",
-      "destination": "/Back_End_SPF/api/get_random_images.py"
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/Front_End_SPF/dist/$1"
+      "src": "/(.*)",
+      "dest": "/Front_End_SPF/dist/$1"
     }
   ],
   "headers": [

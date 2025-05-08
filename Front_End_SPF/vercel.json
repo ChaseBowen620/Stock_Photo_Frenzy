@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm install && npm run build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
   "rewrites": [
@@ -7,5 +7,8 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_URL": "https://stock-photo-frenzy-backend.vercel.app"
+  }
 } 
