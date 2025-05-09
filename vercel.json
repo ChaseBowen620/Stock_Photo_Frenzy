@@ -11,11 +11,26 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/get-random-images", "destination": "/api/index.py" },
-    { "source": "/Build/(.*)", "destination": "/public/Build/$1" },
-    { "source": "/TemplateData/(.*)", "destination": "/public/TemplateData/$1" },
-    { "source": "/StreamingAssets/(.*)", "destination": "/public/StreamingAssets/$1" },
-    { "source": "/(.*)", "destination": "/public/$1" }
+    {
+      "source": "/api/get-random-images",
+      "destination": "/api/index.py"
+    },
+    {
+      "source": "/Build/(.*)",
+      "destination": "/public/Build/$1"
+    },
+    {
+      "source": "/TemplateData/(.*)",
+      "destination": "/public/TemplateData/$1"
+    },
+    {
+      "source": "/StreamingAssets/(.*)",
+      "destination": "/public/StreamingAssets/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/public/$1"
+    }
   ],
   "headers": [
     {
