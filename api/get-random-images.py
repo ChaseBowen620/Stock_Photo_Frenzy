@@ -3,15 +3,17 @@ import base64
 import requests
 import json
 
-def handler(request, response):
+def handler(request):
     # CORS headers
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+    cors_headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Content-Type": "application/json"
+    }
 
     if request.method == "OPTIONS":
-        response.status_code = 204
-        return ""
+        return ("", 204, cors_headers)
 
     query = request.args.get('query', '')
     num_images = int(request.args.get('numImages', '10'))
@@ -20,8 +22,7 @@ def handler(request, response):
     client_id = os.environ.get('SHUTTERSTOCK_CLIENT_ID')
     client_secret = os.environ.get('SHUTTERSTOCK_CLIENT_SECRET')
     if not client_id or not client_secret:
-        response.status_code = 500
-        return json.dumps({"error": "API credentials not configured"})
+        return (json.dumps({"error": "API credentials not configured"}), 500, cors_headers)
 
     # Get access token
     auth_string = f"{client_id}:{client_secret}"
@@ -38,13 +39,11 @@ def handler(request, response):
     }
     token_response = requests.post(token_url, headers=token_headers, data=token_data)
     if token_response.status_code != 200:
-        response.status_code = token_response.status_code
-        return json.dumps({"error": f"Failed to get access token: {token_response.text}"})
+        return (json.dumps({"error": f"Failed to get access token: {token_response.text}"}), token_response.status_code, cors_headers)
 
     access_token = token_response.json().get('access_token')
     if not access_token:
-        response.status_code = 500
-        return json.dumps({"error": "No access token received"})
+        return (json.dumps({"error": "No access token received"}), 500, cors_headers)
 
     # Search for images
     search_url = "https://api.shutterstock.com/v2/images/search"
@@ -58,8 +57,7 @@ def handler(request, response):
     }
     search_response = requests.get(search_url, headers=search_headers, params=search_params)
     if search_response.status_code != 200:
-        response.status_code = search_response.status_code
-        return json.dumps({"error": f"Failed to fetch images: {search_response.text}"})
+        return (json.dumps({"error": f"Failed to fetch images: {search_response.text}"}), search_response.status_code, cors_headers)
 
     data = search_response.json()
     formatted_images = []
@@ -73,5 +71,4 @@ def handler(request, response):
             "truncated_title": truncated_description
         })
 
-    response.headers["Content-Type"] = "application/json"
-    return json.dumps(formatted_images) 
+    return (json.dumps(formatted_images), 200, cors_headers) 
