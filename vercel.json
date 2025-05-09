@@ -10,29 +10,26 @@
       "use": "@vercel/python"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/get-random-images",
-      "dest": "/api/index.py"
+      "source": "/api/get-random-images",
+      "destination": "/api/index.py"
     },
     {
-      "src": "/Build/(.*)",
-      "dest": "/public/Build/$1",
-      "headers": {
-        "Access-Control-Allow-Origin": "*"
-      }
+      "source": "/Build/(.*)",
+      "destination": "/public/Build/$1"
     },
     {
-      "src": "/TemplateData/(.*)",
-      "dest": "/public/TemplateData/$1"
+      "source": "/TemplateData/(.*)",
+      "destination": "/public/TemplateData/$1"
     },
     {
-      "src": "/StreamingAssets/(.*)",
-      "dest": "/public/StreamingAssets/$1"
+      "source": "/StreamingAssets/(.*)",
+      "destination": "/public/StreamingAssets/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/public/$1"
+      "source": "/(.*)",
+      "destination": "/public/$1"
     }
   ],
   "headers": [
