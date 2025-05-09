@@ -2,9 +2,9 @@ import os
 import base64
 import requests
 import json
+from urllib.parse import parse_qs
 
 def handler(request):
-    # CORS headers
     cors_headers = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
@@ -12,18 +12,24 @@ def handler(request):
         "Content-Type": "application/json"
     }
 
+    # Vercel's request is a dict, not a Flask request
+    method = request.get("method", "GET")
+    query_string = request.get("query", "")
+    params = parse_qs(query_string)
+    query = params.get("query", [""])[0]
+    num_images = int(params.get("numImages", ["10"])[0])
+    title_length = int(params.get("titleLength", ["30"])[0])
+
     # Debug: log environment and request
     print("Handler called")
-    print("Request method:", request.method)
+    print("Request method:", method)
+    print("Query string:", query_string)
+    print("Parsed params:", params)
     print("Client ID:", os.environ.get('SHUTTERSTOCK_CLIENT_ID'))
     print("Client Secret:", os.environ.get('SHUTTERSTOCK_CLIENT_SECRET'))
 
-    if request.method == "OPTIONS":
+    if method == "OPTIONS":
         return ("", 204, cors_headers)
-
-    query = request.args.get('query', '')
-    num_images = int(request.args.get('numImages', '10'))
-    title_length = int(request.args.get('titleLength', '30'))
 
     client_id = os.environ.get('SHUTTERSTOCK_CLIENT_ID')
     client_secret = os.environ.get('SHUTTERSTOCK_CLIENT_SECRET')
