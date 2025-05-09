@@ -1,5 +1,0 @@
-/api/get-random-images /api/index.py 200
-/Build/* /Build/:splat 200
-/TemplateData/* /TemplateData/:splat 200
-/StreamingAssets/* /StreamingAssets/:splat 200
-/* /index.html 200 
