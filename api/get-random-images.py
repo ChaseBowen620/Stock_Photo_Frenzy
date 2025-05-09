@@ -12,6 +12,12 @@ def handler(request):
         "Content-Type": "application/json"
     }
 
+    # Debug: log environment and request
+    print("Handler called")
+    print("Request method:", request.method)
+    print("Client ID:", os.environ.get('SHUTTERSTOCK_CLIENT_ID'))
+    print("Client Secret:", os.environ.get('SHUTTERSTOCK_CLIENT_SECRET'))
+
     if request.method == "OPTIONS":
         return ("", 204, cors_headers)
 
@@ -22,6 +28,7 @@ def handler(request):
     client_id = os.environ.get('SHUTTERSTOCK_CLIENT_ID')
     client_secret = os.environ.get('SHUTTERSTOCK_CLIENT_SECRET')
     if not client_id or not client_secret:
+        print("Missing API credentials!")
         return (json.dumps({"error": "API credentials not configured"}), 500, cors_headers)
 
     # Get access token
@@ -37,12 +44,18 @@ def handler(request):
         "client_id": client_id,
         "client_secret": client_secret
     }
-    token_response = requests.post(token_url, headers=token_headers, data=token_data)
+    try:
+        token_response = requests.post(token_url, headers=token_headers, data=token_data)
+    except Exception as e:
+        print("Error during token request:", str(e))
+        return (json.dumps({"error": str(e)}), 500, cors_headers)
     if token_response.status_code != 200:
+        print("Failed to get access token:", token_response.text)
         return (json.dumps({"error": f"Failed to get access token: {token_response.text}"}), token_response.status_code, cors_headers)
 
     access_token = token_response.json().get('access_token')
     if not access_token:
+        print("No access token received!")
         return (json.dumps({"error": "No access token received"}), 500, cors_headers)
 
     # Search for images
@@ -55,8 +68,13 @@ def handler(request):
         "per_page": num_images,
         "view": "full"
     }
-    search_response = requests.get(search_url, headers=search_headers, params=search_params)
+    try:
+        search_response = requests.get(search_url, headers=search_headers, params=search_params)
+    except Exception as e:
+        print("Error during image search:", str(e))
+        return (json.dumps({"error": str(e)}), 500, cors_headers)
     if search_response.status_code != 200:
+        print("Failed to fetch images:", search_response.text)
         return (json.dumps({"error": f"Failed to fetch images: {search_response.text}"}), search_response.status_code, cors_headers)
 
     data = search_response.json()
@@ -71,4 +89,5 @@ def handler(request):
             "truncated_title": truncated_description
         })
 
+    print(f"Returning {len(formatted_images)} images.")
     return (json.dumps(formatted_images), 200, cors_headers) 
