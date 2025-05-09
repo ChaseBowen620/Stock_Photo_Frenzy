@@ -58,8 +58,12 @@
 
       var buildUrl = "Build";
       var loaderUrl = buildUrl + "/Build.loader.js";
+      console.log("Current window location:", window.location.href);
+      console.log("Current pathname:", window.location.pathname);
       console.log("Attempting to load from buildUrl:", buildUrl);
       console.log("Full loader URL:", loaderUrl);
+      console.log("Absolute loader URL:", new URL(loaderUrl, window.location.href).href);
+      
       var config = {
         dataUrl: buildUrl + "/Build.data.br",
         frameworkUrl: buildUrl + "/Build.framework.js.br",
@@ -70,11 +74,13 @@
         productVersion: "1.0",
         showBanner: unityShowBanner,
       };
-      console.log("Config paths:", {
-        dataUrl: config.dataUrl,
-        frameworkUrl: config.frameworkUrl,
-        codeUrl: config.codeUrl,
-        streamingAssetsUrl: config.streamingAssetsUrl
+      
+      // Log absolute URLs for all resources
+      console.log("Absolute resource URLs:", {
+        dataUrl: new URL(config.dataUrl, window.location.href).href,
+        frameworkUrl: new URL(config.frameworkUrl, window.location.href).href,
+        codeUrl: new URL(config.codeUrl, window.location.href).href,
+        streamingAssetsUrl: new URL(config.streamingAssetsUrl, window.location.href).href
       });
 
       // By default, Unity keeps WebGL canvas render target size matched with
@@ -111,7 +117,7 @@
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
-        console.log("Loader script loaded successfully");
+        console.log("Loader script loaded successfully from:", script.src);
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = 100 * progress + "%";
           console.log("Loading progress:", progress);
@@ -123,11 +129,15 @@
           };
         }).catch((message) => {
           console.error("Unity instance creation failed:", message);
+          console.error("Failed config:", config);
           alert(message);
         });
       };
       script.onerror = (error) => {
-        console.error("Failed to load script:", loaderUrl, error);
+        console.error("Failed to load script:", loaderUrl);
+        console.error("Error details:", error);
+        console.error("Script element:", script);
+        console.error("Current document URL:", document.URL);
       };
 
       document.body.appendChild(script);
