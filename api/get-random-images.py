@@ -5,6 +5,9 @@ import json
 from urllib.parse import parse_qs
 
 def handler(request):
+    return ("Hello from Vercel Python!", 200, {"Content-Type": "text/plain"})
+
+def handler(request):
     cors_headers = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
