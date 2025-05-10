@@ -8,9 +8,15 @@ def handler(request):
     cors_headers = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding",
         "Content-Type": "application/json"
     }
+
+    # If the client accepts Brotli, add the Content-Encoding header
+    accept_encoding = request.get("headers", {}).get("accept-encoding", "")
+    use_brotli = "br" in accept_encoding
+    if use_brotli:
+        cors_headers["Content-Encoding"] = "br"
 
     method = request.get("method", "GET")
     query_string = request.get("query", "")
@@ -80,4 +86,13 @@ def handler(request):
             "truncated_title": truncated_description
         })
 
-    return (json.dumps(formatted_images), 200, cors_headers) 
+    response_body = json.dumps(formatted_images)
+    # If Brotli is requested, compress the response
+    if use_brotli:
+        try:
+            import brotli
+            response_body = brotli.compress(response_body.encode('utf-8'))
+        except ImportError:
+            # If brotli is not installed, just return uncompressed
+            pass
+    return (response_body, 200, cors_headers) 
