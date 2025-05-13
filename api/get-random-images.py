@@ -5,18 +5,6 @@ import json
 from urllib.parse import parse_qs
 
 def handler(request):
-    return {
-        "statusCode": 200,
-        "headers": {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding",
-            "Content-Type": "application/json"
-        },
-        "body": json.dumps({"message": "API is reachable!"})
-    }
-
-"""
     def cors_headers():
         return {
             "Content-Type": "application/json",
@@ -93,4 +81,3 @@ def handler(request):
             "headers": cors_headers(),
             "body": json.dumps({"error": str(e)})
         }
-"""
