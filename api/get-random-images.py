@@ -7,6 +7,18 @@ from typing import Dict
 
 def handler(request) -> Dict:
     try:
+        # Handle preflight CORS request
+        if request.get("method") == "OPTIONS":
+            return {
+                "statusCode": 204,
+                "headers": {
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Methods": "GET, OPTIONS",
+                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding"
+                },
+                "body": ""
+            }
+
         # Parse query parameters
         query_params = parse_qs(request.get("query", ""))
         query = query_params.get("query", ["city"])[0]
@@ -17,16 +29,7 @@ def handler(request) -> Dict:
         client_id = os.environ.get('SHUTTERSTOCK_CLIENT_ID')
         client_secret = os.environ.get('SHUTTERSTOCK_CLIENT_SECRET')
         if not client_id or not client_secret:
-            return {
-                "statusCode": 500,
-                "headers": {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding"
-                },
-                "body": json.dumps({"error": "API credentials not configured"})
-            }
+            return error_response("API credentials not configured")
 
         # Get access token
         auth_string = f"{client_id}:{client_secret}"
@@ -44,29 +47,11 @@ def handler(request) -> Dict:
 
         token_response = requests.post(token_url, headers=token_headers, data=token_data)
         if token_response.status_code != 200:
-            return {
-                "statusCode": token_response.status_code,
-                "headers": {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding"
-                },
-                "body": json.dumps({"error": f"Failed to get access token: {token_response.text}"})
-            }
+            return error_response(f"Failed to get access token: {token_response.text}", token_response.status_code)
 
         access_token = token_response.json().get('access_token')
         if not access_token:
-            return {
-                "statusCode": 500,
-                "headers": {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding"
-                },
-                "body": json.dumps({"error": "No access token received"})
-            }
+            return error_response("No access token received")
 
         # Search for images
         search_url = "https://api.shutterstock.com/v2/images/search"
@@ -81,16 +66,7 @@ def handler(request) -> Dict:
 
         search_response = requests.get(search_url, headers=search_headers, params=search_params)
         if search_response.status_code != 200:
-            return {
-                "statusCode": search_response.status_code,
-                "headers": {
-                    "Content-Type": "application/json",
-                    "Access-Control-Allow-Origin": "*",
-                    "Access-Control-Allow-Methods": "GET, OPTIONS",
-                    "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding"
-                },
-                "body": json.dumps({"error": f"Failed to fetch images: {search_response.text}"})
-            }
+            return error_response(f"Failed to fetch images: {search_response.text}", search_response.status_code)
 
         data = search_response.json()
         formatted_images = []
@@ -104,9 +80,10 @@ def handler(request) -> Dict:
                 "truncated_title": truncated_description
             })
 
-        # Check if client accepts Brotli compression
+        # Check for Brotli support
         accept_encoding = request.get("headers", {}).get("accept-encoding", "")
         use_brotli = "br" in accept_encoding
+        response_body = json.dumps(formatted_images)
 
         headers = {
             "Content-Type": "application/json",
@@ -118,12 +95,16 @@ def handler(request) -> Dict:
         if use_brotli:
             try:
                 import brotli
-                response_body = brotli.compress(json.dumps(formatted_images).encode('utf-8'))
+                compressed = brotli.compress(response_body.encode("utf-8"))
                 headers["Content-Encoding"] = "br"
+                return {
+                    "statusCode": 200,
+                    "headers": headers,
+                    "body": base64.b64encode(compressed).decode("utf-8"),
+                    "isBase64Encoded": True
+                }
             except ImportError:
-                response_body = json.dumps(formatted_images)
-        else:
-            response_body = json.dumps(formatted_images)
+                pass  # Fallback to uncompressed
 
         return {
             "statusCode": 200,
@@ -132,13 +113,17 @@ def handler(request) -> Dict:
         }
 
     except Exception as e:
-        return {
-            "statusCode": 500,
-            "headers": {
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "GET, OPTIONS",
-                "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding"
-            },
-            "body": json.dumps({"error": str(e)})
-        } 
+        return error_response(str(e))
+
+# Utility function for consistent error responses
+def error_response(message, status=500):
+    return {
+        "statusCode": status,
+        "headers": {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept-Encoding"
+        },
+        "body": json.dumps({"error": message})
+    }
