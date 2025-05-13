@@ -4,7 +4,9 @@ import requests
 import json
 from urllib.parse import parse_qs
 from typing import Dict
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
+# Original Lambda handler function
 def handler(request) -> Dict:
     try:
         # Handle preflight CORS request
@@ -127,3 +129,78 @@ def error_response(message, status=500):
         },
         "body": json.dumps({"error": message})
     }
+
+# HTTP Server implementation that uses the handler function
+class ShutterstockRequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        # Extract query string
+        query = ""
+        if '?' in self.path:
+            query = self.path.split('?', 1)[1]
+        
+        # Build request object compatible with Lambda handler
+        request = {
+            "method": "GET",
+            "path": self.path,
+            "query": query,
+            "headers": {k.lower(): v for k, v in self.headers.items()}
+        }
+        
+        # Call the original handler
+        response = handler(request)
+        
+        # Send response
+        self.send_response(response.get("statusCode", 200))
+        for header, value in response.get("headers", {}).items():
+            self.send_header(header, value)
+        self.end_headers()
+        
+        body = response.get("body", "")
+        if response.get("isBase64Encoded", False):
+            body = base64.b64decode(body)
+        elif isinstance(body, str):
+            body = body.encode('utf-8')
+            
+        self.wfile.write(body)
+
+    def do_OPTIONS(self):
+        # Handle OPTIONS requests
+        request = {"method": "OPTIONS"}
+        response = handler(request)
+        
+        self.send_response(response.get("statusCode", 204))
+        for header, value in response.get("headers", {}).items():
+            self.send_header(header, value)
+        self.end_headers()
+
+# Entry point for standalone HTTP server
+def run_server(host='localhost', port=8000):
+    server = HTTPServer((host, port), ShutterstockRequestHandler)
+    print(f"Starting HTTP server on http://{host}:{port}")
+    server.serve_forever()
+
+# This will be the entry point when running as a script
+if __name__ == "__main__":
+    # Set environment variables if not already set (for local testing)
+    if not os.environ.get('SHUTTERSTOCK_CLIENT_ID'):
+        os.environ['SHUTTERSTOCK_CLIENT_ID'] = 'your_client_id_here'
+    if not os.environ.get('SHUTTERSTOCK_CLIENT_SECRET'):
+        os.environ['SHUTTERSTOCK_CLIENT_SECRET'] = 'your_client_secret_here'
+    
+    run_server()
+
+# Entry point for AWS Lambda
+def lambda_handler(event, context):
+    # Convert Lambda event to format expected by our handler
+    request = {
+        "method": event.get("httpMethod", "GET"),
+        "path": event.get("path", "/"),
+        "query": event.get("queryStringParameters", {}),
+        "headers": {k.lower(): v for k, v in event.get("headers", {}).items()}
+    }
+    
+    # If query is a dict (AWS API Gateway format), convert to query string
+    if isinstance(request["query"], dict):
+        request["query"] = "&".join([f"{k}={v}" for k, v in request["query"].items()])
+    
+    return handler(request)
